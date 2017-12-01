@@ -7,9 +7,6 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 
-
-
-
 def generate_text_and_image(char_set=None, text_size=None):
     """
     从字符集中随机选择字符生成一个默认长度为4的字符串，并生成验证码图片

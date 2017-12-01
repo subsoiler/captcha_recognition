@@ -22,6 +22,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="captcha_train.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="create_captcha.py">
       <SubType>Code</SubType>
     </Compile>

@@ -20,7 +20,7 @@ def prepare_image(captcha_image):
     """
     if  len(captcha_image.shape) > 2:
         captcha_image = np.mean(captcha_image, -1)
-        np.pad(captcha_image, ((98, 98), (48, 48)), 'constant', constant_values=(255, ))
+    captcha_image = np.pad(captcha_image, ((98, 98), (48, 48)), 'constant', constant_values=(255, ))
     return captcha_image
 
 MODEL_TEXT, MODEL_IMAGE = generate_text_and_image()
@@ -115,9 +115,9 @@ def max_poop_2x2(x_image):
     return tf.nn.max_pool(x_image, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
 def  captcha_cnn():
-    x_image = tf.placeholder(tf.float16, [None, IMAGE_HEIGHT*IMAGE_WIDTH])
-    x_image = tf.shape(x_image, shape=[-1, IMAGE_HEIGHT, IMAGE_WIDTH, 1])
-    keep_prob = tf.placeholder(tf.float16)
+    x_image = tf.placeholder(tf.float32, [None, IMAGE_HEIGHT*IMAGE_WIDTH])
+    x_image = tf.reshape(x_image, shape=[-1, IMAGE_HEIGHT, IMAGE_WIDTH, 1])
+    keep_prob = tf.placeholder(tf.float32)
 
     w_conv1 = weight_variable([5, 5, 1, 32])
     b_conv1 = bias_variable([32])
@@ -130,7 +130,7 @@ def  captcha_cnn():
     h_pool2 = max_poop_2x2(h_conv2)
 
     w_conv3 = weight_variable([5, 5, 64, 128])
-    b_conv3 = bias_variable([64])
+    b_conv3 = bias_variable([128])
     h_conv3 = tf.nn.relu(conv2d(h_pool2, w_conv3)+b_conv3)
     h_pool3 = max_poop_2x2(h_conv3)
 
@@ -149,14 +149,14 @@ def  captcha_cnn():
 
 def train_captcha_cnn():
 
-    x_image = tf.placeholder(tf.float16, [None, IMAGE_HEIGHT*IMAGE_WIDTH])
-    y_label = tf.placeholder(tf.float16, [None, CHAPTCHA_LEN*CHAR_SET_LEN])
-    keep_prob = tf.placeholder(tf.float16)
+    x_image = tf.placeholder(tf.float32, [None, IMAGE_HEIGHT*IMAGE_WIDTH])
+    y_label = tf.placeholder(tf.float32, [None, CHAPTCHA_LEN*CHAR_SET_LEN])
+    keep_prob = tf.placeholder(tf.float32)
     y_conv = captcha_cnn()
     cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_label*tf.log(y_conv), reduction_indices=[1]))
     train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
     correct_prediction = tf.equal(tf.arg_max(y_conv, 1), tf.arg_max(y_label, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float16))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     saver = tf.train.Saver()
 
     with tf.Session() as sess:

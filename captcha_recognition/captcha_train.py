@@ -9,8 +9,8 @@ from create_captcha import generate_text_and_image
 import numpy as np
 import tensorflow as tf
 
-captcha_text, captcha_image = generate_text_and_image()
-CHAPTCHA_LEN = len(captcha_text)
+MODEL_TEXT, MODEL_IMAGE = generate_text_and_image()
+CHAPTCHA_LEN = len(MODEL_TEXT)
 
 def char2pos(word):
     """
@@ -26,7 +26,6 @@ def char2pos(word):
         if k > 35:
             k = ord(word) - 61
     return k
-
 
 def prepare_image(captcha_image):
     """
@@ -60,9 +59,11 @@ def vec2text(captcha_vector):
     将验证码向量转为字符
     ARGS：
     captcha_vector:验证码字符串
+    captcha_len:验证码字符串长度
     RETURN:
     captcha_text:生成的验证码字符
     """
+
     char_pos = captcha_vector.nonzero()[0]
     captcha_text = ''
     for _, c in enumerate(char_pos):
@@ -75,7 +76,7 @@ def vec2text(captcha_vector):
             captcha_text.join(char_index-36+ord('a'))
     return captcha_text
 
-def get_next_batch(batch_size):
+def get_next_batch(batch_size, captcha_len):
     """
     生成用于计算的next_batch
     ARGS:
@@ -84,6 +85,8 @@ def get_next_batch(batch_size):
     batch_x, batch_y:生成的用于计算的向量
     """
     captcha_text, captcha_image=generate_text_and_image()
+    while captcha_image.shape!=MODEL_IMAGE.shape:
+        captcha_text, captcha_image=generate_text_and_image()
     image_height, image_weight, _ =captcha_image.shape
     batch_x=np.zeros([batch_size, image_height*image_weight])
     batch_y=np.zeros([batch_size, CHAPTCHA_LEN*len(string.ascii_letters+string.digits)])
@@ -93,5 +96,11 @@ def get_next_batch(batch_size):
         batch_y[i, : ]=text2vec(captcha_text)
     return batch_x, batch_y
 
+def  weight_variable(shape):
+    initial=tf.truncated_normal(shape, stddev = 0.1)
+    return tf.Variable(initial)
 
+def bias_variable(shape):
+    initial=tf.constant(0.1, shape = shape)
+    return tf.Variable(initial)
 

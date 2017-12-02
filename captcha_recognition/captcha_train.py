@@ -3,26 +3,26 @@
 采用的训练模型为cnn，当训练准确率达到98%时停止
 """
 #coding: utf-8
+import string
 from create_captcha import generate_text_and_image
 
 import numpy as np
 import tensorflow as tf
-import string
 
-captcha_text, captcha_image=generate_text_and_image()
-CHAPTCHA_LEN=len(captcha_text)
+captcha_text, captcha_image = generate_text_and_image()
+CHAPTCHA_LEN = len(captcha_text)
 
-def char2pos(c):
-    k=ord(c)-48
+def char2pos(word):
+    k = ord(word)-48
     if k > 9:
-        k = ord(c) - 55
+        k = ord(word) - 55
         if k > 35:
-            k = ord(c) - 61
+            k = ord(word) - 61
 
 
 def prepare_image(captcha_image):
     if  len(captcha_image.shape()) >2:
-        captcha_image=captcha_image.convert("L")
+        captcha_image = captcha_image.convert("L")
     return captcha_image
 
 def text2vec(captcha_text):

@@ -13,7 +13,7 @@ MODEL_TEXT, MODEL_IMAGE = generate_text_and_image()
 CHAPTCHA_LEN = len(MODEL_TEXT)
 CHAR_SET_LEN=len(string.ascii_letters+string.digits)
 MODEL_IMAGE = prepare_image(MODEL_IMAGE)
-IMAGE_HEIGHT, IMAGE_WIDTH, _=MODEL_IMAGE.shape()
+IMAGE_HEIGHT, IMAGE_WIDTH, _ = MODEL_IMAGE.shape()
 
 def char2pos(word):
     """

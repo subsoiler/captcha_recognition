@@ -5,15 +5,29 @@
 #coding: utf-8
 import string
 from create_captcha import generate_text_and_image
+from PIL import Image
 
 import numpy as np
 import tensorflow as tf
 
+def prepare_image(captcha_image):
+    """
+    对于验证码进行一系列的准备工作，主要是将验证码由彩色变为黑白
+    ARGS：
+    captcha_image：待转换的图片
+    RETURNS：
+    captcha_imgae:转换完毕的图片
+    """
+    if  len(captcha_image.shape) > 2:
+        captcha_image = np.mean(captcha_image, -1)
+        np.pad(captcha_image, ((98, 98), (48, 48)), 'constant', constant_values=(255, ))
+    return captcha_image
+
 MODEL_TEXT, MODEL_IMAGE = generate_text_and_image()
 CHAPTCHA_LEN = len(MODEL_TEXT)
-CHAR_SET_LEN=len(string.ascii_letters+string.digits)
+CHAR_SET_LEN = len(string.ascii_letters+string.digits)
 MODEL_IMAGE = prepare_image(MODEL_IMAGE)
-IMAGE_HEIGHT, IMAGE_WIDTH, _ = MODEL_IMAGE.shape()
+IMAGE_HEIGHT, IMAGE_WIDTH = MODEL_IMAGE.shape
 
 def char2pos(word):
     """
@@ -29,19 +43,6 @@ def char2pos(word):
         if k > 35:
             k = ord(word) - 61
     return k
-
-def prepare_image(captcha_image):
-    """
-    对于验证码进行一系列的准备工作，主要是将验证码由彩色变为黑白
-    ARGS：
-    captcha_image：待转换的图片
-    RETURNS：
-    captcha_imgae:转换完毕的图片
-    """
-    if  len(captcha_image.shape()) >2:
-        captcha_image = captcha_image.convert("L")
-        np.pad(captcha_image, ((98,98), (48, 48)), 'constant', constant_values = (255, ))
-    return captcha_image
 
 def text2vec(captcha_text):
     """

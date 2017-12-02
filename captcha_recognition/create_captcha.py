@@ -29,7 +29,7 @@ def generate_text_and_image(char_set=None, text_size=None):
     captcha = ImageCaptcha().generate(captcha_text)
 
     captcha_image = np.array(Image.open(captcha))
-    ImageCaptcha().write(captcha_text, captcha_text + '.jpg')
+#    ImageCaptcha().write(captcha_text, captcha_text + '.jpg')
     return captcha_text, captcha_image
 
 def main():

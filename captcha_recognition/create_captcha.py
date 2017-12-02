@@ -9,10 +9,10 @@ from PIL import Image
 
 def generate_text_and_image(char_set=None, text_size=None):
     """
-    从字符集中随机选择字符生成一个默认长度为4的字符串，并生成验证码图片
+    从字符集中随机选择字符生成一个默认长度为6的字符串，并生成验证码图片
     Args:
     charSet:字符集，默认为数字，小写字母和大写字母。
-    text_size:验证码长度，默认为4
+    text_size:验证码长度，默认为6
     Return:
     captcha_text:随机生成的验证码的文字
     captcha_picture:与captcha_text相匹配的验证码图片

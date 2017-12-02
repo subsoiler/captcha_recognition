@@ -147,7 +147,7 @@ def  captcha_cnn():
     return y_conv
 
 def train_captcha_cnn():
-
+    sess = tf.InteractiveSession()
     x_image = tf.placeholder(tf.float32, [None, IMAGE_HEIGHT*IMAGE_WIDTH])
     y_label = tf.placeholder(tf.float32, [None, CHAPTCHA_LEN*CHAR_SET_LEN])
     keep_prob = tf.placeholder(tf.float32)
@@ -157,20 +157,18 @@ def train_captcha_cnn():
     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_label, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     saver = tf.train.Saver()
-
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        step = 0
-        while True:
-            batch = get_next_batch(100)
-            if step%100 == 0:
-                train_accuracy = accuracy.eval(feed_dict={x_image:batch[0],\
-                                y_label:batch[1], keep_prob:1})
-                print("step %d , train_accuracy %g"%(step, train_accuracy))
-                if train_accuracy > 0.98:
-                    saver.save(sess, "captcha_mpodel", global_step=step)
-                    break
-            train_step.run(feed_dict={x_image:batch[0], y_label:batch[1], keep_prob:0.75})
-            step += 1
+    tf.global_variables_initializer().run()
+    step = 0
+    while True:
+        batch_x, batch_y = get_next_batch(50)
+        train_step.run(feed_dict={x_image: batch_x, y_label: batch_y, keep_prob:0.75})
+        if step%100 == 0:
+            train_accuracy = accuracy.eval(feed_dict={x_image: batch_x, y_label: batch_y,
+                                                      keep_prob: 1.0})
+            print("step %d , train_accuracy %g"%(step, train_accuracy))
+            if train_accuracy > 0.98:
+                saver.save(sess, "captcha_mpodel", global_step=step)
+                break
+        step += 1
 
 train_captcha_cnn()

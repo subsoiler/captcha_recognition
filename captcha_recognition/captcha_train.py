@@ -116,7 +116,6 @@ def max_poop_2x2(x_image):
 
 def  captcha_cnn():
     x_image = tf.placeholder(tf.float16, [None, IMAGE_HEIGHT*IMAGE_WIDTH])
-    y_label = tf.placeholder(tf.float16, [None, CHAPTCHA_LEN*CHAR_SET_LEN])
     x_image = tf.shape(x_image, [-1, IMAGE_HEIGHT, IMAGE_WIDTH, 1])
     keep_prob = tf.placeholder(tf.float16)
 

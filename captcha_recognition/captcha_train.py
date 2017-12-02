@@ -20,7 +20,7 @@ def prepare_image(captcha_image):
     """
     if  len(captcha_image.shape) > 2:
         captcha_image = np.mean(captcha_image, -1)
-    captcha_image = np.pad(captcha_image, ((98, 98), (48, 48)), 'constant', constant_values=(255, ))
+    captcha_image = np.pad(captcha_image, ((2, 2), (48, 48)), 'constant', constant_values=(255, ))
     return captcha_image
 
 MODEL_TEXT, MODEL_IMAGE = generate_text_and_image()
@@ -88,14 +88,13 @@ def get_next_batch(batch_size):
     RETURNS：
     batch_x, batch_y:生成的用于计算的向量
     """
-    captcha_text, captcha_image = generate_text_and_image()
-    captcha_image = prepare_image(captcha_image)
-    while captcha_image.shape != MODEL_IMAGE.shape:
-        captcha_text, captcha_image = generate_text_and_image()
     batch_x = np.zeros([batch_size, IMAGE_HEIGHT*IMAGE_WIDTH])
     batch_y = np.zeros([batch_size, CHAPTCHA_LEN*CHAR_SET_LEN])
     for i in range(batch_size):
+        captcha_text, captcha_image = generate_text_and_image()
         captcha_image = prepare_image(captcha_image)
+        while captcha_image.shape != MODEL_IMAGE.shape:
+            captcha_text, captcha_image = generate_text_and_image()
         batch_x[i, : ] = captcha_image.flatten()/255
         batch_y[i, : ] = text2vec(captcha_text)
     return batch_x, batch_y
@@ -134,9 +133,9 @@ def  captcha_cnn():
     h_conv3 = tf.nn.relu(conv2d(h_pool2, w_conv3)+b_conv3)
     h_pool3 = max_poop_2x2(h_conv3)
 
-    w_fc1 = weight_variable([14*14*128, 1024])
+    w_fc1 = weight_variable([8*32*128, 1024])
     b_fc1 = bias_variable([1024])
-    h_pool3_flat = tf.reshape(h_pool3, [-1, 14*14*128])
+    h_pool3_flat = tf.reshape(h_pool3, [-1, 8*32*128])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, w_fc1)+b_fc1)
 
     h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
@@ -155,7 +154,7 @@ def train_captcha_cnn():
     y_conv = captcha_cnn()
     cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_label*tf.log(y_conv), reduction_indices=[1]))
     train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-    correct_prediction = tf.equal(tf.arg_max(y_conv, 1), tf.arg_max(y_label, 1))
+    correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_label, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     saver = tf.train.Saver()
 
@@ -166,7 +165,7 @@ def train_captcha_cnn():
             batch = get_next_batch(100)
             if step%100 == 0:
                 train_accuracy = accuracy.eval(feed_dict={x_image:batch[0],\
-                                y_label:batch[1], keep_prob:0.75})
+                                y_label:batch[1], keep_prob:1})
                 print("step %d , train_accuracy %g"%(step, train_accuracy))
                 if train_accuracy > 0.98:
                     saver.save(sess, "captcha_mpodel", global_step=step)

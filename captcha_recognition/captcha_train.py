@@ -91,7 +91,7 @@ def bias_variable(shape):
     return tf.Variable(initial)
 
 def conv2d(x_image, weight_matrix):
-    return tf.nn.conv2d(x_image, weight_matrix, strides=[1, 1, 1, 1], padding='SAME')
+    return tf.nn.conv2d(x_image, weight_matrix , strides=[1, 1, 1, 1], padding='SAME')
 
 def max_poop_2x2(x_image):
     return tf.nn.max_pool(x_image, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
@@ -146,10 +146,9 @@ def train_crack_captcha_cnn():
 
         step = 0
         while True:
-            batch_x, batch_y = get_next_batch(64)
-            _, loss_ = sess.run([train_step, cross_entropy],
-                                feed_dict={X_IMAGE: batch_x, Y_LABEL: batch_y, KEEP_PROB: 0.75})
-            print(step, loss_)
+            batch_x, batch_y = get_next_batch(100)
+            sess.run([train_step, cross_entropy],
+                     feed_dict={X_IMAGE: batch_x, Y_LABEL: batch_y, KEEP_PROB: 0.75})
 
             if step % 100 == 0:
                 batch_x_test, batch_y_test = get_next_batch(100)

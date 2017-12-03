@@ -5,7 +5,6 @@
 #coding: utf-8
 import string
 from create_captcha import generate_text_and_image
-from PIL import Image
 
 import numpy as np
 import tensorflow as tf

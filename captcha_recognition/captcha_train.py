@@ -91,7 +91,7 @@ def bias_variable(shape):
     return tf.Variable(initial)
 
 def conv2d(x_image, weight_matrix):
-    return tf.nn.conv2d(x_image, w, strides=[1, 1, 1, 1], padding='SAME')
+    return tf.nn.conv2d(x_image, weight_matrix, strides=[1, 1, 1, 1], padding='SAME')
 
 def max_poop_2x2(x_image):
     return tf.nn.max_pool(x_image, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')

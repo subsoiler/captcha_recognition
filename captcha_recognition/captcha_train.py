@@ -5,7 +5,7 @@ from create_captcha import generate_text_and_image
 import numpy as np
 import tensorflow as tf
 
-LOG_DIR='.//log'
+LOG_DIR = './/log'
 MODEL_TEXT, MODEL_IMAGE = generate_text_and_image() #先生成验证码和文字测试模块是否完全
 print("验证码图像channel:", MODEL_IMAGE.shape)  # (60, 160, 3)
 IMAGE_HEIGHT, IMAGE_WIDTH, _ = MODEL_IMAGE.shape
@@ -133,9 +133,10 @@ def captch_cnn():
 def train_crack_captcha_cnn():
     y_conv = captch_cnn()
     with tf.name_scope('cross_entropy'):
-       cross_entropy = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y_conv,
-                                                                           labels=Y_LABEL))
-    tf.summary.scalar('cross_entropy',cross_entropy)
+        cross_entropy = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y_conv,
+                                                                               labels=Y_LABEL))
+    tf.summary.scalar('cross_entropy', cross_entropy)
+
     with tf.name_scope('train_step'):
         train_step = tf.train.AdamOptimizer(learning_rate=0.001).minimize(cross_entropy)
 
@@ -149,24 +150,27 @@ def train_crack_captcha_cnn():
     saver = tf.train.Saver()
     with tf.Session() as sess:
         summary = tf.summary.merge_all()
-        train_writer = tf.summary.FileWriter(LOG_DIR+'//train', sess.grap)
+        train_write = tf.summary.FileWriter(LOG_DIR+'//train', sess.graph)
         test_write = tf.summary.FileWriter(LOG_DIR+'//test')
         sess.run(tf.global_variables_initializer())
 
         step = 0
         while True:
             batch_x, batch_y = get_next_batch(100)
-            _, cross_entropy=sess.run([train_step, cross_entropy],
-                                                       feed_dict={X_IMAGE: batch_x, Y_LABEL: batch_y, KEEP_PROB: 0.75})
+            loss, _ = sess.run([cross_entropy,train_step],
+                                 feed_dict={X_IMAGE: batch_x,
+                                            Y_LABEL: batch_y, KEEP_PROB: 0.75})
 
             if step % 10 == 0:
-                run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-                run_metadata = tf.RunMetadata()
+                pass    
+#               train_write.add_summary(summary, step)
+
+            if step % 100 == 0:
                 batch_x_test, batch_y_test = get_next_batch(100)
-                summary, acc = sess.run([merged,accuracy], feed_dict={X_IMAGE: batch_x_test,
-                                                    Y_LABEL: batch_y_test, KEEP_PROB: 1.})
-                train_writer.add_run_metadata(run_metadata, 'step%03d' % i)
-                test_write.add_summary(summary, i)
+                acc = sess.run(accuracy, feed_dict={X_IMAGE: batch_x_test,
+                                                    Y_LABEL: batch_y_test,
+                                                    KEEP_PROB: 1.})
+#                test_write.add_summary(summary, step)
                 saver.save(sess, ".\\model\\crack_capcha.model", global_step=step)
                 print(step, acc)
 				# 如果准确率大于98%,保存模型,完成训练

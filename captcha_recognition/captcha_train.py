@@ -154,10 +154,11 @@ def train_crack_captcha_cnn():
                 batch_x_test, batch_y_test = get_next_batch(100)
                 acc = sess.run(accuracy, feed_dict={X_IMAGE: batch_x_test,
                                                     Y_LABEL: batch_y_test, KEEP_PROB: 1.})
+                saver.save(sess, ".\\model\\crack_capcha.model", global_step=step)
                 print(step, acc)
 				# 如果准确率大于98%,保存模型,完成训练
                 if acc > 0.98:
-                    saver.save(sess, "crack_capcha.model", global_step=step)
+                    saver.save(sess, ".\\model\\crack_capcha.model", global_step=step)
                     break
             step += 1
 

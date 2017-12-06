@@ -127,7 +127,7 @@ def captch_cnn():
     with tf.name_scope('output_layer'):
         w_fc2 = weight_variable([1024, CAPTCHA_LEN*CHAR_SET_LEN])
         b_fc2 = bias_variable([CAPTCHA_LEN*CHAR_SET_LEN])
-        y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, w_fc2)+b_fc2)
+        y_conv = tf.matmul(h_fc1_drop, w_fc2)+b_fc2
     return y_conv
 
 def train_crack_captcha_cnn():
@@ -135,7 +135,7 @@ def train_crack_captcha_cnn():
     with tf.name_scope('cross_entropy'):
         cross_entropy = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=y_conv,
                                                                                labels=Y_LABEL))
-    tf.summary.scalar('cross_entropy', cross_entropy)
+        tf.summary.scalar('cross_entropy', cross_entropy)
 
     with tf.name_scope('train_step'):
         train_step = tf.train.AdamOptimizer(learning_rate=0.001).minimize(cross_entropy)
@@ -145,7 +145,9 @@ def train_crack_captcha_cnn():
     max_idx_p = tf.argmax(predict, 2)
     max_idx_l = tf.argmax(tf.reshape(Y_LABEL, [-1, CAPTCHA_LEN, CHAR_SET_LEN]), 2)
     correct_pred = tf.equal(max_idx_p, max_idx_l)
-    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    with tf.name_scope('accuracy'):
+        accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+        tf.summary.scalar('accuracy', accuracy)
 
     saver = tf.train.Saver()
     with tf.Session() as sess:
@@ -170,11 +172,13 @@ def train_crack_captcha_cnn():
                 acc = sess.run(accuracy, feed_dict={X_IMAGE: batch_x_test,
                                                     Y_LABEL: batch_y_test,
                                                     KEEP_PROB: 1.})
-#                test_write.add_summary(summary, step)
-                saver.save(sess, ".\\model\\crack_capcha.model", global_step=step)
+            if step % 600 == 0:
+                saver.save(sess, "./model/crack_capcha.model", global_step=step)
+                test_write.add_summary(summary, step)
                 print(step, acc)
 				# 如果准确率大于98%,保存模型,完成训练
                 if acc > 0.98:
+                    saver.save(sess, "./model/crack_capcha_finish.model", global_step=step)
                     break
             step += 1
 

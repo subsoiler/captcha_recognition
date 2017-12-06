@@ -159,9 +159,10 @@ def train_crack_captcha_cnn():
         step = 0
         while True:
             batch_x, batch_y = get_next_batch(100)
-            loss, _ = sess.run([cross_entropy,train_step],
+            summary, loss, _ = sess.run([merged, cross_entropy,train_step],
                                  feed_dict={X_IMAGE: batch_x,
                                             Y_LABEL: batch_y, KEEP_PROB: 0.75})
+            train_write.add_summary(summary, step)
             print(step, loss)
             if step % 10 == 0:
                 pass    
@@ -169,14 +170,12 @@ def train_crack_captcha_cnn():
 
             if step % 100 == 0:
                 batch_x_test, batch_y_test = get_next_batch(100)
-                summary, acc = sess.run([merged, accuracy], 
+                acc = sess.run( accuracy,
                                         feed_dict={X_IMAGE: batch_x_test,
                                                    Y_LABEL: batch_y_test, KEEP_PROB: 1.})
-                train_write.add_summary(summary, step)
                 print(step, acc)
             if step % 600 == 0:
                 saver.save(sess, "./model/crack_capcha.model", global_step=step)
-				# 如果准确率大于98%,保存模型,完成训练
                 if acc > 0.98:
                     saver.save(sess, "./model/crack_capcha_finish.model", global_step=step)
                     break

@@ -151,7 +151,7 @@ def train_crack_captcha_cnn():
 
     saver = tf.train.Saver()
     with tf.Session() as sess:
-        summary = tf.summary.merge_all()
+        merged = tf.summary.merge_all()
         train_write = tf.summary.FileWriter(LOG_DIR+'//train', sess.graph)
         test_write = tf.summary.FileWriter(LOG_DIR+'//test')
         sess.run(tf.global_variables_initializer())
@@ -162,20 +162,20 @@ def train_crack_captcha_cnn():
             loss, _ = sess.run([cross_entropy,train_step],
                                  feed_dict={X_IMAGE: batch_x,
                                             Y_LABEL: batch_y, KEEP_PROB: 0.75})
-
+            print(step, loss)
             if step % 10 == 0:
                 pass    
-#               train_write.add_summary(summary, step)
+#              train_write.add_summary(summary, step)
 
             if step % 100 == 0:
                 batch_x_test, batch_y_test = get_next_batch(100)
-                acc = sess.run(accuracy, feed_dict={X_IMAGE: batch_x_test,
-                                                    Y_LABEL: batch_y_test,
-                                                    KEEP_PROB: 1.})
+                summary, acc = sess.run([merged, accuracy], 
+                                        feed_dict={X_IMAGE: batch_x_test,
+                                                   Y_LABEL: batch_y_test, KEEP_PROB: 1.})
+                train_write.add_summary(summary, step)
+                print(step, acc)
             if step % 600 == 0:
                 saver.save(sess, "./model/crack_capcha.model", global_step=step)
-                test_write.add_summary(summary, step)
-                print(step, acc)
 				# 如果准确率大于98%,保存模型,完成训练
                 if acc > 0.98:
                     saver.save(sess, "./model/crack_capcha_finish.model", global_step=step)

@@ -5,7 +5,7 @@ from create_captcha import generate_text_and_image
 import numpy as np
 import tensorflow as tf
 
-LOG_DIR = './/log'
+LOG_DIR = 'd://log'
 MODEL_TEXT, MODEL_IMAGE = generate_text_and_image() #先生成验证码和文字测试模块是否完全
 print("验证码图像channel:", MODEL_IMAGE.shape)  # (60, 160, 3)
 IMAGE_HEIGHT, IMAGE_WIDTH, _ = MODEL_IMAGE.shape
@@ -84,15 +84,28 @@ with tf.name_scope('input'):
 KEEP_PROB = tf.placeholder(tf.float32) # dropout
 X_IMAGE_RESHAPED = tf.reshape(X_IMAGE, shape=[-1, IMAGE_HEIGHT, IMAGE_WIDTH, 1])
 
+def variable_summaries(var):
+    with tf.name_scope('summaries'):
+        mean = tf.reduce_mean(var)
+        tf.summary.scalar('mean', mean)
+
+    with tf.name_scope('stddev'):
+        stddev = tf.sqrt(tf.reduce_mean(tf.square(var-mean)))
+        tf.summary.scalar('stddev', stddev)
+    tf.summary.scalar('max', tf.reduce_max(var))
+    tf.summary.scalar('min', tf.reduce_min(var))
+    tf.summary.histogram('histogram', var)
+
 def  weight_variable(shape,layer_name):
     with tf.name_scope(layer_name+'_weights'):
         initial = tf.truncated_normal(shape, stddev=0.1)
-        return tf.Variable(initial)
+        variable_summaries(initial)
+    return tf.Variable(initial)
 
 def bias_variable(shape,layer_name):
     with tf.name_scope(layer_name+'_bias'):
-        initial = tf.constant(0.1, shape=shape)
-        return tf.Variable(initial)
+        initial = tf.random_normal(shape = shape)
+    return tf.Variable(initial)
 
 def conv2d(x_image, weight_matrix):
     return tf.nn.conv2d(x_image, weight_matrix , strides=[1, 1, 1, 1], padding='SAME')
@@ -110,7 +123,6 @@ def create_layer(layer_name, input_matrix, tensor_shape, bias_shape):
 
 def captch_cnn():
 
-	# 3 conv layer
     h_pool1 = create_layer('layer_1', X_IMAGE_RESHAPED, [5, 5, 1, 32], [32])
     h_pool2 = create_layer('layer_2', h_pool1, [5, 5, 32, 64], [64])
     h_pool3 = create_layer('layer_3', h_pool2, [5, 5, 64, 64], [64])
@@ -121,6 +133,7 @@ def captch_cnn():
         h_pool3_flat = tf.reshape(h_pool3, [-1, 8*20*64])
         h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, w_fc1)+b_fc1)
         h_fc1_drop = tf.nn.dropout(h_fc1, KEEP_PROB)
+
     with tf.name_scope('output_layer'):
         w_fc2 = weight_variable([1024, CAPTCHA_LEN*CHAR_SET_LEN], 'output_layer')
         b_fc2 = bias_variable([CAPTCHA_LEN*CHAR_SET_LEN], 'output_layer')
@@ -150,7 +163,7 @@ def train_crack_captcha_cnn():
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
         train_write = tf.summary.FileWriter(LOG_DIR+'//train', sess.graph)
-#        test_write = tf.summary.FileWriter(LOG_DIR+'//test')
+        test_write = tf.summary.FileWriter(LOG_DIR+'//test')
         sess.run(tf.global_variables_initializer())
 
         step = 0
@@ -159,19 +172,17 @@ def train_crack_captcha_cnn():
             summary, loss, _ = sess.run([merged, cross_entropy,train_step],
                                  feed_dict={X_IMAGE: batch_x,
                                             Y_LABEL: batch_y, KEEP_PROB: 0.75})
-            train_write.add_summary(summary, step)
             print(step, loss)
             if step % 10 == 0:
-                pass    
-#              train_write.add_summary(summary, step)
+                train_write.add_summary(summary, step)
 
-            if step % 100 == 0:
+            if step % 100 == 0 and step != 0:
                 batch_x_test, batch_y_test = get_next_batch(100)
-                acc = sess.run( accuracy,
-                                        feed_dict={X_IMAGE: batch_x_test,
-                                                   Y_LABEL: batch_y_test, KEEP_PROB: 1.})
+                acc, summary = sess.run( [accuracy,merged], feed_dict={X_IMAGE: batch_x_test,
+                                                              Y_LABEL: batch_y_test, KEEP_PROB: 1.})
                 print(step, acc)
-            if step % 600 == 0:
+                test_write.add_summary(summary)
+            if step % 600 == 0 and step != 0:
                 saver.save(sess, "./model/crack_capcha.model", global_step=step)
                 if acc > 0.98:
                     saver.save(sess, "./model/crack_capcha_finish.model", global_step=step)

@@ -106,30 +106,31 @@ def create_layer(layer_name):
         b_conv1 = bias_variable([32],layer_name)
         h_conv1 = tf.nn.relu(conv2d(X_IMAGE_RESHAPED, w_conv1)+b_conv1)
         h_pool1 = max_poop_2x2(h_conv1)
+        return h_pool1
 
 def captch_cnn():
 
 	# 3 conv layer
-    create_layer('layer_1')
+    h_pool1 = create_layer('layer_1')
     with tf. name_scope('layer_2'):
-        w_conv2 = weight_variable([5, 5, 32, 64])
-        b_conv2 = bias_variable([64])
+        w_conv2 = weight_variable([5, 5, 32, 64], 'layer_2')
+        b_conv2 = bias_variable([64], 'layer_2')
         h_conv2 = tf.nn.relu(conv2d(h_pool1, w_conv2)+b_conv2)
         h_pool2 = max_poop_2x2(h_conv2)
     with tf.name_scope('layer_3'):
-        w_conv3 = weight_variable([5, 5, 64, 64])
-        b_conv3 = bias_variable([64])
+        w_conv3 = weight_variable([5, 5, 64, 64], 'layer_3')
+        b_conv3 = bias_variable([64], 'layer_3')
         h_conv3 = tf.nn.relu(conv2d(h_pool2, w_conv3)+b_conv3)
         h_pool3 = max_poop_2x2(h_conv3)
     with tf.name_scope('fullt_connected_layer_1'):
-        w_fc1 = weight_variable([8*20*64, 1024])
-        b_fc1 = bias_variable([1024])
+        w_fc1 = weight_variable([8*20*64, 1024], 'fullt_connected_layer_1')
+        b_fc1 = bias_variable([1024], 'fullt_connected_layer_1')
         h_pool3_flat = tf.reshape(h_pool3, [-1, 8*20*64])
         h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, w_fc1)+b_fc1)
         h_fc1_drop = tf.nn.dropout(h_fc1, KEEP_PROB)
     with tf.name_scope('output_layer'):
-        w_fc2 = weight_variable([1024, CAPTCHA_LEN*CHAR_SET_LEN])
-        b_fc2 = bias_variable([CAPTCHA_LEN*CHAR_SET_LEN])
+        w_fc2 = weight_variable([1024, CAPTCHA_LEN*CHAR_SET_LEN], 'output_layer')
+        b_fc2 = bias_variable([CAPTCHA_LEN*CHAR_SET_LEN], 'output_layer')
         y_conv = tf.matmul(h_fc1_drop, w_fc2)+b_fc2
     return y_conv
 

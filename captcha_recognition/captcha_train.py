@@ -100,28 +100,21 @@ def conv2d(x_image, weight_matrix):
 def max_poop_2x2(x_image):
     return tf.nn.max_pool(x_image, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
-def create_layer(layer_name):
+def create_layer(layer_name, input_matrix, tensor_shape, bias_shape):
     with tf.name_scope(layer_name):
-        w_conv1 = weight_variable([5, 5, 1, 32],layer_name)
-        b_conv1 = bias_variable([32],layer_name)
-        h_conv1 = tf.nn.relu(conv2d(X_IMAGE_RESHAPED, w_conv1)+b_conv1)
-        h_pool1 = max_poop_2x2(h_conv1)
-        return h_pool1
+        w_conv = weight_variable(tensor_shape, layer_name)
+        b_conv = bias_variable(bias_shape, layer_name)
+        h_conv = tf.nn.relu(conv2d(input_matrix, w_conv)+b_conv)
+        h_pool = max_poop_2x2(h_conv)
+    return h_pool
 
 def captch_cnn():
 
 	# 3 conv layer
-    h_pool1 = create_layer('layer_1')
-    with tf. name_scope('layer_2'):
-        w_conv2 = weight_variable([5, 5, 32, 64], 'layer_2')
-        b_conv2 = bias_variable([64], 'layer_2')
-        h_conv2 = tf.nn.relu(conv2d(h_pool1, w_conv2)+b_conv2)
-        h_pool2 = max_poop_2x2(h_conv2)
-    with tf.name_scope('layer_3'):
-        w_conv3 = weight_variable([5, 5, 64, 64], 'layer_3')
-        b_conv3 = bias_variable([64], 'layer_3')
-        h_conv3 = tf.nn.relu(conv2d(h_pool2, w_conv3)+b_conv3)
-        h_pool3 = max_poop_2x2(h_conv3)
+    h_pool1 = create_layer('layer_1', X_IMAGE_RESHAPED, [5, 5, 1, 32], [32])
+    h_pool2 = create_layer('layer_2', h_pool1, [5, 5, 32, 64], [64])
+    h_pool3 = create_layer('layer_3', h_pool2, [5, 5, 64, 64], [64])
+
     with tf.name_scope('fullt_connected_layer_1'):
         w_fc1 = weight_variable([8*20*64, 1024], 'fullt_connected_layer_1')
         b_fc1 = bias_variable([1024], 'fullt_connected_layer_1')
@@ -157,7 +150,7 @@ def train_crack_captcha_cnn():
     with tf.Session() as sess:
         merged = tf.summary.merge_all()
         train_write = tf.summary.FileWriter(LOG_DIR+'//train', sess.graph)
-        test_write = tf.summary.FileWriter(LOG_DIR+'//test')
+#        test_write = tf.summary.FileWriter(LOG_DIR+'//test')
         sess.run(tf.global_variables_initializer())
 
         step = 0

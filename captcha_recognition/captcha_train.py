@@ -124,13 +124,13 @@ def create_layer(layer_name, input_matrix, tensor_shape, bias_shape):
 def captch_cnn():
 
     h_pool1 = create_layer('layer_1', X_IMAGE_RESHAPED, [5, 5, 1, 32], [32])
-    h_pool2 = create_layer('layer_2', h_pool1, [5, 5, 32, 64], [64])
-    h_pool3 = create_layer('layer_3', h_pool2, [5, 5, 64, 64], [64])
+    h_pool2 = create_layer('layer_2', h_pool1, [3, 3, 32, 64], [64])
+    h_pool3 = create_layer('layer_3', h_pool2, [3, 3, 64, 128], [128])
 
     with tf.name_scope('fullt_connected_layer_1'):
-        w_fc1 = weight_variable([8*20*64, 1024], 'fullt_connected_layer_1')
+        w_fc1 = weight_variable([8*20*128, 1024], 'fullt_connected_layer_1')
         b_fc1 = bias_variable([1024], 'fullt_connected_layer_1')
-        h_pool3_flat = tf.reshape(h_pool3, [-1, 8*20*64])
+        h_pool3_flat = tf.reshape(h_pool3, [-1, 8*20*128])
         h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, w_fc1)+b_fc1)
         h_fc1_drop = tf.nn.dropout(h_fc1, KEEP_PROB)
 

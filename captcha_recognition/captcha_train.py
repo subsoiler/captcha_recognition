@@ -99,12 +99,11 @@ def variable_summaries(var):
 def  weight_variable(shape,layer_name):
     with tf.name_scope(layer_name+'_weights'):
         initial = tf.truncated_normal(shape, stddev=0.1)
-        variable_summaries(initial)
     return tf.Variable(initial)
 
 def bias_variable(shape,layer_name):
     with tf.name_scope(layer_name+'_bias'):
-        initial = tf.random_normal(shape = shape)
+        initial = tf.constant(0.1, shape=shape)
     return tf.Variable(initial)
 
 def conv2d(x_image, weight_matrix):
@@ -124,13 +123,13 @@ def create_layer(layer_name, input_matrix, tensor_shape, bias_shape):
 def captch_cnn():
 
     h_pool1 = create_layer('layer_1', X_IMAGE_RESHAPED, [5, 5, 1, 32], [32])
-    h_pool2 = create_layer('layer_2', h_pool1, [3, 3, 32, 64], [64])
-    h_pool3 = create_layer('layer_3', h_pool2, [3, 3, 64, 128], [128])
+    h_pool2 = create_layer('layer_2', h_pool1, [5, 5, 32, 64], [64])
+    h_pool3 = create_layer('layer_3', h_pool2, [5, 5, 64, 64], [64])
 
     with tf.name_scope('fullt_connected_layer_1'):
-        w_fc1 = weight_variable([8*20*128, 1024], 'fullt_connected_layer_1')
+        w_fc1 = weight_variable([8*20*64, 1024], 'fullt_connected_layer_1')
         b_fc1 = bias_variable([1024], 'fullt_connected_layer_1')
-        h_pool3_flat = tf.reshape(h_pool3, [-1, 8*20*128])
+        h_pool3_flat = tf.reshape(h_pool3, [-1, 8*20*64])
         h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, w_fc1)+b_fc1)
         h_fc1_drop = tf.nn.dropout(h_fc1, KEEP_PROB)
 
@@ -169,19 +168,17 @@ def train_crack_captcha_cnn():
         step = 0
         while True:
             batch_x, batch_y = get_next_batch(100)
-            summary, loss, _ = sess.run([merged, cross_entropy,train_step],
+            summary,  _ = sess.run([merged, train_step],
                                  feed_dict={X_IMAGE: batch_x,
                                             Y_LABEL: batch_y, KEEP_PROB: 0.75})
-            print(step, loss)
-            if step % 10 == 0:
-                train_write.add_summary(summary, step)
 
             if step % 100 == 0 and step != 0:
                 batch_x_test, batch_y_test = get_next_batch(100)
                 acc, summary = sess.run( [accuracy,merged], feed_dict={X_IMAGE: batch_x_test,
                                                               Y_LABEL: batch_y_test, KEEP_PROB: 1.})
                 print(step, acc)
-                test_write.add_summary(summary)
+                train_write.add_summary(summary, step)
+                test_write.add_summary(summary, step)
             if step % 600 == 0 and step != 0:
                 saver.save(sess, "./model/crack_capcha.model", global_step=step)
                 if acc > 0.98:

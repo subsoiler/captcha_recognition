@@ -33,7 +33,7 @@ def generate_text_and_image(char_set=None, text_size=None):
     return captcha_text, captcha_image
 
 def main():
-    "用于测试,讲生成的验证码及其文字显示在屏幕上，文字在验证码上方"
+    "用于测试,将生成的验证码及其文字显示在屏幕上，文字在验证码上方"
     text, image = generate_text_and_image()
     plt.title(text)
     plt.imshow(image)
